@@ -78,7 +78,7 @@ Token Lexer::readString() {
     return Token(TokenType::STRING, stringStr, line, col);
 }
 
-// variable names, function names...
+// variable names, function names and also keywords.
 Token Lexer::readIdentifier() {
     std::string identifierStr = "";
 
@@ -90,10 +90,20 @@ Token Lexer::readIdentifier() {
         identifierStr += current();
         advance();
     }
-    return Token(TokenType::IDENTIFIER, identifierStr, line, col);
+
+    auto kwOrID = keywordOrIdentifier(identifierStr);
+
+    if (kwOrID == TokenType::IDENTIFIER) { // identifier
+        return Token(TokenType::IDENTIFIER, identifierStr, line, col);
+    } else { // keyword
+        return Token(kwOrID, identifierStr, line, col);
+    }
+
 }
 
-TokenType Lexer::keywordOrIdentifier() {
+
+// here we define how the keywords should look like in the source code
+TokenType Lexer::keywordOrIdentifier(const std::string &text) {
     static const std::unordered_map<std::string, TokenType> keywords = {
         {"if", TokenType::KW_IF},
         {"then", TokenType::KW_THEN},
@@ -110,6 +120,12 @@ TokenType Lexer::keywordOrIdentifier() {
         {"end", TokenType::KW_END},
         {"func", TokenType::KW_FUNCTION},
     };
+
+    auto it = keywords.find(text);
+    if (it != keywords.end()) {
+        return it->second;  // It's a keyword
+    }
+    return TokenType::IDENTIFIER;  // It's just a variable/function name
 }
 
 // Helper to get the current character

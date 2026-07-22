@@ -62,7 +62,7 @@ private:
     Token readNumber();
     Token readString();
     Token readIdentifier();
-    TokenType keywordOrIdentifier();
+    TokenType keywordOrIdentifier(const std::string& text);
 
     // helper to get the current character (from pos)
     char current();
