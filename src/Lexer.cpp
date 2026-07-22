@@ -4,12 +4,12 @@
 
 #include "../include/Lexer.h"
 
-Lexer::Lexer(const std::string &input) {
+#include <unordered_map>
 
+Lexer::Lexer(const std::string &input) {
 }
 
 std::vector<Token> Lexer::Tokenize() {
-
     // here we loop trough the whole source code, we "emit" tokens (add them to the tokens list)
     while (pos < source.length()) {
         char c = current();
@@ -19,15 +19,16 @@ std::vector<Token> Lexer::Tokenize() {
         } else if (std::isdigit(c)) {
             // read the entire number then emit
             emit(readNumber());
-        } else if (c == '-' && std::isdigit(peek())) { // negative number
+        } else if (c == '-' && std::isdigit(peek())) {
+            // negative number
             emit(readNumber());
         } else if (std::isalpha(c) || c == '_') {
             // read the entire word then emit
             emit(readIdentifier());
-        } else if (current() == '"' || current() == '\'') { // string
+        } else if (current() == '"' || current() == '\'') {
+            // string
             emit(readString());
-        }
-            else if (c == '=') {
+        } else if (c == '=') {
             // logical operator
             if (peek() == '=') {
                 emit(Token(TokenType::EQ, "==", line, col));
@@ -66,7 +67,8 @@ Token Lexer::readString() {
     while (pos < source.length()) {
         // string is completed/closed
         if (current() == '"' || current() == '\'') {
-            if (!(peek(-1) == '\\')) { // escape character allowing ' or " to be stored in a string
+            if (!(peek(-1) == '\\')) {
+                // escape character allowing ' or " to be stored in a string
                 break;
             }
         }
@@ -81,13 +83,33 @@ Token Lexer::readIdentifier() {
     std::string identifierStr = "";
 
     while (pos < source.length()) {
-        if (std::isspace(current())) { // identifier is ended with a space
+        if (std::isspace(current())) {
+            // identifier is ended with a space
             break;
         }
         identifierStr += current();
         advance();
     }
     return Token(TokenType::IDENTIFIER, identifierStr, line, col);
+}
+
+TokenType Lexer::keywordOrIdentifier() {
+    static const std::unordered_map<std::string, TokenType> keywords = {
+        {"if", TokenType::KW_IF},
+        {"then", TokenType::KW_THEN},
+        {"else", TokenType::KW_ELSE},
+        {"while", TokenType::KW_WHILE},
+        {"do", TokenType::KW_DO},
+        {"for", TokenType::KW_FOR},
+        {"in", TokenType::KW_IN},
+        {"and", TokenType::KW_AND},
+        {"or", TokenType::KW_OR},
+        {"not", TokenType::KW_NOT},
+        {"true", TokenType::KW_TRUE},
+        {"false", TokenType::KW_FALSE},
+        {"end", TokenType::KW_END},
+        {"func", TokenType::KW_FUNCTION},
+    };
 }
 
 // Helper to get the current character

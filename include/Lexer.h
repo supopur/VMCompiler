@@ -15,9 +15,8 @@ enum class TokenType {
     // Keywords
     KW_IF, KW_THEN, KW_ELSE, KW_END,
     KW_WHILE, KW_DO, KW_FOR, KW_IN,
-    KW_FUNCTION, KW_RETURN,
+    KW_FUNCTION,
     KW_AND, KW_OR, KW_NOT,
-    KW_LOCAL,
     KW_TRUE, KW_FALSE,
 
     // Operators
