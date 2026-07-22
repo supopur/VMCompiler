@@ -6,7 +6,7 @@
 #define MVSCRIPTCOMPILER_PARSER_H
 
 
-class parser {
+class Parser {
 };
 
 

@@ -6,7 +6,7 @@
 #define MVSCRIPTCOMPILER_AST_H
 
 
-class ast {
+class AST {
 };
 
 

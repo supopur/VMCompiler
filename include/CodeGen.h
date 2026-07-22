@@ -6,7 +6,7 @@
 #define MVSCRIPTCOMPILER_CODEGEN_H
 
 
-class codegen {
+class CodeGen {
 };
 
 

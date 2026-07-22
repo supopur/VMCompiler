@@ -4,9 +4,12 @@
 
 #ifndef MVSCRIPTCOMPILER_LEXER_H
 #define MVSCRIPTCOMPILER_LEXER_H
+#include <string>
 
 
-class lexer {
+class Lexer {
+public:
+
 };
 
 // individual token
@@ -33,5 +36,14 @@ enum class TokenType {
     EOF_TOKEN, ERROR
 };
 
+struct Token {
+    TokenType type;
+    // optional
+    std::string value;
+
+    // for error reporting
+    int line;
+    int column;
+};
 
 #endif //MVSCRIPTCOMPILER_LEXER_H

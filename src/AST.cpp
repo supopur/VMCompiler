@@ -2,4 +2,4 @@
 // Created by Matouš Smékal on 22.07.2026.
 //
 
-#include "../include/ast.h"
+#include "../include/AST.h"
