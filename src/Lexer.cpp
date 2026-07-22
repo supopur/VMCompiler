@@ -24,7 +24,10 @@ std::vector<Token> Lexer::Tokenize() {
         } else if (std::isalpha(c) || c == '_') {
             // read the entire word then emit
             emit(readIdentifier());
-        } else if (c == '=') {
+        } else if (current() == '"' || current() == '\'') { // string
+            emit(readString());
+        }
+            else if (c == '=') {
             // logical operator
             if (peek() == '=') {
                 emit(Token(TokenType::EQ, "==", line, col));
@@ -51,6 +54,26 @@ Token Lexer::readNumber() {
         advance();
     }
     return Token(TokenType::NUMBER, numberStr, line, col);
+}
+
+Token Lexer::readString() {
+    // we can have empty strings so we have to initialize
+    std::string stringStr = "";
+
+    // we always start at the ' or " sign so we skip this
+    advance();
+
+    while (pos < source.length()) {
+        // string is completed/closed
+        if (current() == '"' || current() == '\'') {
+            if (!(peek(-1) == '\\')) { // escape character allowing ' or " to be stored in a string
+                break;
+            }
+        }
+        stringStr += current();
+        advance();
+    }
+    return Token(TokenType::STRING, stringStr, line, col);
 }
 
 // Helper to get the current character
