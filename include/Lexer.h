@@ -13,7 +13,7 @@ enum class TokenType {
     NUMBER, STRING, IDENTIFIER, BOOLEAN,
 
     // Keywords
-    KW_IF, KW_THEN, KW_ELSEIF, KW_ELSE, KW_END,
+    KW_IF, KW_THEN, KW_ELSE, KW_END,
     KW_WHILE, KW_DO, KW_FOR, KW_IN,
     KW_FUNCTION, KW_RETURN,
     KW_AND, KW_OR, KW_NOT,
