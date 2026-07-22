@@ -6,7 +6,7 @@
 
 #include <unordered_map>
 
-Lexer::Lexer(const std::string &input) {
+Lexer::Lexer(const std::string &input) : source(input), pos(0), line(1), col(0) {
 }
 
 std::vector<Token> Lexer::Tokenize() {
@@ -32,15 +32,47 @@ std::vector<Token> Lexer::Tokenize() {
             // logical operator
             if (peek() == '=') {
                 emit(Token(TokenType::EQ, "==", line, col));
+                advance();
+                advance(); // and also skip the second =
             }
             // assignment
             else {
                 emit(Token(TokenType::ASSIGN, "=", line, col));
+                advance();
             }
-        } else {
+        } else if (c == '!') {
+            // neq
+            if (peek() == '=') {
+                emit(Token(TokenType::NEQ, "!=", line, col));
+                advance();
+                advance();
+            }
+        } else if (c == '>') {
+            emit(Token(TokenType::GT, ">", line, col));
+            advance();
+        } else if (c == '<') {
+            emit(Token(TokenType::LT, "<", line, col));
+            advance();
+        } else if (c == '+') {
+            emit(Token(TokenType::PLUS, "+", line, col));
+            advance();
+        } else if (c == '*') {
+            emit(Token(TokenType::STAR, "*", line, col));
+            advance();
+        } else if (c == '/') {
+            emit(Token(TokenType::SLASH, "/", line, col));
+            advance();
+        } else if (c == '(') {
+            emit(Token(TokenType::LPAREN, "(", line, col));
+            advance();
+        } else if (c == ')') {
+            emit(Token(TokenType::RPAREN, ")", line, col));
+        }
+        else {
             throw std::runtime_error("Lexer::Tokenize()");
         }
     }
+    return tokens;
 }
 
 Token Lexer::readNumber() {
@@ -93,12 +125,13 @@ Token Lexer::readIdentifier() {
 
     auto kwOrID = keywordOrIdentifier(identifierStr);
 
-    if (kwOrID == TokenType::IDENTIFIER) { // identifier
+    if (kwOrID == TokenType::IDENTIFIER) {
+        // identifier
         return Token(TokenType::IDENTIFIER, identifierStr, line, col);
-    } else { // keyword
+    } else {
+        // keyword
         return Token(kwOrID, identifierStr, line, col);
     }
-
 }
 
 
@@ -123,9 +156,9 @@ TokenType Lexer::keywordOrIdentifier(const std::string &text) {
 
     auto it = keywords.find(text);
     if (it != keywords.end()) {
-        return it->second;  // It's a keyword
+        return it->second; // It's a keyword
     }
-    return TokenType::IDENTIFIER;  // It's just a variable/function name
+    return TokenType::IDENTIFIER; // It's just a variable/function name
 }
 
 // Helper to get the current character
@@ -139,6 +172,9 @@ void Lexer::advance() {
 }
 
 char Lexer::peek(int offset) {
+    if (pos + offset >= source.length()) {
+        return '\0';
+    }
     return source[pos + offset];
 }
 
