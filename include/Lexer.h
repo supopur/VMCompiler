@@ -33,7 +33,7 @@ enum class TokenType {
 
 struct Token {
     TokenType type;
-    // optional
+    // seems like it is optional but is actually required!!
     std::string value;
 
     // for error reporting

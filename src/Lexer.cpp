@@ -40,20 +40,17 @@ std::vector<Token> Lexer::Tokenize() {
 }
 
 Token Lexer::readNumber() {
-    bool isNegative = false;
-    bool isDecimal = false;
-
-    // if the first char is a minus sign we know it's negative
-    // we also need to check that the following char is a number (can't have a dp)
-    if (current() == '-') {
-        isNegative = true;
-        if (!std::isdigit(peek())) {
-            throw std::runtime_error("Lexer::readNumber()");
-        }
-    }
+    std::string numberStr;
 
     while (pos < source.length()) {
+        //check if we reached the end of the int
+        if (std::isspace(current())) {
+            break;
+        }
+        numberStr += current();
+        advance();
     }
+    return Token(TokenType::NUMBER, numberStr, line, col);
 }
 
 // Helper to get the current character
