@@ -64,6 +64,8 @@ private:
     Token readIdentifier();
     TokenType keywordOrIdentifier(const std::string& text);
 
+    bool isInvalidForIdentifier(char c);
+
     // helper to get the current character (from pos)
     char current();
     // move to the next character

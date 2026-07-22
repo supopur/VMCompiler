@@ -9,52 +9,66 @@
 Lexer::Lexer(const std::string &input) : source(input), pos(0), line(1), col(0) {
 }
 
+// Characters that cannot be part of an identifier or number
+bool Lexer::isInvalidForIdentifier(char c) {
+    static const std::string invalidChars = "(){}[],;:.=<>!+-*/%&|^~?@#$`\\\"' \t\n\r";
+    return invalidChars.find(c) != std::string::npos;
+}
+
 std::vector<Token> Lexer::Tokenize() {
-    // here we loop trough the whole source code, we "emit" tokens (add them to the tokens list)
     while (pos < source.length()) {
         char c = current();
+
         if (std::isspace(c)) {
-            // skip whitespace
             advance();
         } else if (std::isdigit(c)) {
-            // read the entire number then emit
             emit(readNumber());
-        } else if (c == '-' && std::isdigit(peek())) {
-            // negative number
+        } else if (c == '-' && pos + 1 < source.length() && std::isdigit(peek())) {
             emit(readNumber());
         } else if (std::isalpha(c) || c == '_') {
-            // read the entire word then emit
             emit(readIdentifier());
-        } else if (current() == '"' || current() == '\'') {
-            // string
+        } else if (c == '"' || c == '\'') {
             emit(readString());
         } else if (c == '=') {
-            // logical operator
             if (peek() == '=') {
                 emit(Token(TokenType::EQ, "==", line, col));
                 advance();
-                advance(); // and also skip the second =
-            }
-            // assignment
-            else {
+                advance();
+            } else {
                 emit(Token(TokenType::ASSIGN, "=", line, col));
                 advance();
             }
         } else if (c == '!') {
-            // neq
             if (peek() == '=') {
                 emit(Token(TokenType::NEQ, "!=", line, col));
                 advance();
                 advance();
+            } else {
+                advance();
+            }
+        } else if (c == '<') {
+            if (peek() == '=') {
+                emit(Token(TokenType::LE, "<=", line, col));
+                advance();
+                advance();
+            } else {
+                emit(Token(TokenType::LT, "<", line, col));
+                advance();
             }
         } else if (c == '>') {
-            emit(Token(TokenType::GT, ">", line, col));
-            advance();
-        } else if (c == '<') {
-            emit(Token(TokenType::LT, "<", line, col));
-            advance();
+            if (peek() == '=') {
+                emit(Token(TokenType::GE, ">=", line, col));
+                advance();
+                advance();
+            } else {
+                emit(Token(TokenType::GT, ">", line, col));
+                advance();
+            }
         } else if (c == '+') {
             emit(Token(TokenType::PLUS, "+", line, col));
+            advance();
+        } else if (c == '-') {
+            emit(Token(TokenType::MINUS, "-", line, col));
             advance();
         } else if (c == '*') {
             emit(Token(TokenType::STAR, "*", line, col));
@@ -62,14 +76,27 @@ std::vector<Token> Lexer::Tokenize() {
         } else if (c == '/') {
             emit(Token(TokenType::SLASH, "/", line, col));
             advance();
+        } else if (c == '%') {
+            emit(Token(TokenType::PERCENT, "%", line, col));
+            advance();
         } else if (c == '(') {
             emit(Token(TokenType::LPAREN, "(", line, col));
             advance();
         } else if (c == ')') {
             emit(Token(TokenType::RPAREN, ")", line, col));
-        }
-        else {
-            throw std::runtime_error("Lexer::Tokenize()");
+            advance();
+        } else if (c == ',') {
+            emit(Token(TokenType::COMMA, ",", line, col));
+            advance();
+        } else if (c == ';') {
+            emit(Token(TokenType::SEMICOLON, ";", line, col));
+            advance();
+        } else if (c == '.' && peek() == '.') {
+            emit(Token(TokenType::DOT_DOT, "..", line, col));
+            advance();
+            advance();
+        } else {
+            throw std::runtime_error(std::string("Unknown character: ") + c);
         }
     }
     return tokens;
@@ -78,47 +105,38 @@ std::vector<Token> Lexer::Tokenize() {
 Token Lexer::readNumber() {
     std::string numberStr;
 
-    while (pos < source.length()) {
-        //check if we reached the end of the int
-        if (std::isspace(current())) {
-            break;
-        }
+    while (pos < source.length() && !isInvalidForIdentifier(current())) {
         numberStr += current();
         advance();
     }
     return Token(TokenType::NUMBER, numberStr, line, col);
 }
 
+
 Token Lexer::readString() {
     // we can have empty strings so we have to initialize
     std::string stringStr = "";
-
-    // we always start at the ' or " sign so we skip this
+    char quote = current();
     advance();
 
     while (pos < source.length()) {
-        // string is completed/closed
-        if (current() == '"' || current() == '\'') {
-            if (!(peek(-1) == '\\')) {
-                // escape character allowing ' or " to be stored in a string
-                break;
-            }
+        if (current() == quote && peek(-1) != '\\') { // escape character
+            break;
         }
         stringStr += current();
         advance();
     }
+    if (pos < source.length()) advance(); // skip closing quote
+
     return Token(TokenType::STRING, stringStr, line, col);
 }
+
 
 // variable names, function names and also keywords.
 Token Lexer::readIdentifier() {
     std::string identifierStr = "";
 
-    while (pos < source.length()) {
-        if (std::isspace(current())) {
-            // identifier is ended with a space
-            break;
-        }
+    while (pos < source.length() && !isInvalidForIdentifier(current())) {
         identifierStr += current();
         advance();
     }
@@ -133,6 +151,7 @@ Token Lexer::readIdentifier() {
         return Token(kwOrID, identifierStr, line, col);
     }
 }
+
 
 
 // here we define how the keywords should look like in the source code
@@ -151,7 +170,7 @@ TokenType Lexer::keywordOrIdentifier(const std::string &text) {
         {"true", TokenType::KW_TRUE},
         {"false", TokenType::KW_FALSE},
         {"end", TokenType::KW_END},
-        {"func", TokenType::KW_FUNCTION},
+        {"func", TokenType::KW_FUNCTION}
     };
 
     auto it = keywords.find(text);
