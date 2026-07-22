@@ -76,6 +76,20 @@ Token Lexer::readString() {
     return Token(TokenType::STRING, stringStr, line, col);
 }
 
+// variable names, function names...
+Token Lexer::readIdentifier() {
+    std::string identifierStr = "";
+
+    while (pos < source.length()) {
+        if (std::isspace(current())) { // identifier is ended with a space
+            break;
+        }
+        identifierStr += current();
+        advance();
+    }
+    return Token(TokenType::IDENTIFIER, identifierStr, line, col);
+}
+
 // Helper to get the current character
 char Lexer::current() {
     return source[pos];
