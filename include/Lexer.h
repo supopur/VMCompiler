@@ -5,12 +5,7 @@
 #ifndef MVSCRIPTCOMPILER_LEXER_H
 #define MVSCRIPTCOMPILER_LEXER_H
 #include <string>
-
-
-class Lexer {
-public:
-
-};
+#include <vector>
 
 // individual token
 enum class TokenType {
@@ -44,6 +39,40 @@ struct Token {
     // for error reporting
     int line;
     int column;
+};
+
+class Lexer {
+public:
+    // Constructor which takes source code
+    Lexer(const std::string &input);
+
+    // make it run
+    std::vector<Token> Tokenize();
+
+private:
+    // current position in terms of the sourcecode, this is used for error reporting and is useless for the lexer...
+    int line, col;
+    // the current CHARACTER which we are currently reading, (we do not split the string upfront)
+    size_t pos;
+
+    //sc
+    std::string source;
+
+    std::vector<Token> tokens;
+
+    Token readNumber();
+    Token readString();
+    Token readIdentifier();
+    TokenType keywordOfIdentifier();
+
+    // helper to get the current character (from pos)
+    char current();
+    // move to the next character
+    void advance();
+    // see what character is after a given offset relative from current position
+    char peek(int offset = 1);
+    //basically create the token
+    void emit(const Token &token);
 };
 
 #endif //MVSCRIPTCOMPILER_LEXER_H

@@ -3,3 +3,73 @@
 //
 
 #include "../include/Lexer.h"
+
+Lexer::Lexer(const std::string &input) {
+
+}
+
+std::vector<Token> Lexer::Tokenize() {
+
+    // here we loop trough the whole source code, we "emit" tokens (add them to the tokens list)
+    while (pos < source.length()) {
+        char c = current();
+        if (std::isspace(c)) {
+            // skip whitespace
+            advance();
+        } else if (std::isdigit(c)) {
+            // read the entire number then emit
+            emit(readNumber());
+        } else if (c == '-' && std::isdigit(peek())) { // negative number
+            emit(readNumber());
+        } else if (std::isalpha(c) || c == '_') {
+            // read the entire word then emit
+            emit(readIdentifier());
+        } else if (c == '=') {
+            // logical operator
+            if (peek() == '=') {
+                emit(Token(TokenType::EQ, "==", line, col));
+            }
+            // assignment
+            else {
+                emit(Token(TokenType::ASSIGN, "=", line, col));
+            }
+        } else {
+            throw std::runtime_error("Lexer::Tokenize()");
+        }
+    }
+}
+
+Token Lexer::readNumber() {
+    bool isNegative = false;
+    bool isDecimal = false;
+
+    // if the first char is a minus sign we know it's negative
+    // we also need to check that the following char is a number (can't have a dp)
+    if (current() == '-') {
+        isNegative = true;
+        if (!std::isdigit(peek())) {
+            throw std::runtime_error("Lexer::readNumber()");
+        }
+    }
+
+    while (pos < source.length()) {
+    }
+}
+
+// Helper to get the current character
+char Lexer::current() {
+    return source[pos];
+}
+
+// Helper to move to the next character
+void Lexer::advance() {
+    pos++;
+}
+
+char Lexer::peek(int offset) {
+    return source[pos + offset];
+}
+
+void Lexer::emit(const Token &token) {
+    tokens.push_back(token);
+}
