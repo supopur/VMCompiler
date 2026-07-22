@@ -63,7 +63,7 @@ private:
     Token readNumber();
     Token readString();
     Token readIdentifier();
-    TokenType keywordOfIdentifier();
+    TokenType keywordOrIdentifier();
 
     // helper to get the current character (from pos)
     char current();
