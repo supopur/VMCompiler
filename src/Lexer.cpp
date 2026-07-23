@@ -21,7 +21,6 @@ bool Lexer::isInvalidForIdentifier(char c) {
 }
 
 std::vector<Token> Lexer::Tokenize() {
-    std::cout << "zavolano";
     while(std::getline(file, currentLine)) {
         pos = 0;
         line = lineNumber;
