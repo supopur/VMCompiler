@@ -4,6 +4,8 @@
 
 #ifndef MVSCRIPTCOMPILER_LEXER_H
 #define MVSCRIPTCOMPILER_LEXER_H
+#include <cstdint>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -43,7 +45,8 @@ struct Token {
 class Lexer {
 public:
     // Constructor which takes source code
-    Lexer(const std::string &input);
+    //Lexer(const std::string &input);
+    Lexer(std::ifstream &file);
 
     // make it run
     std::vector<Token> Tokenize();
@@ -54,8 +57,10 @@ private:
     // the current CHARACTER which we are currently reading, (we do not split the string upfront)
     size_t pos;
 
-    //sc
-    std::string source;
+    std::fstream file;
+    uint32_t lineNumber = 1;
+
+    std::string currentLine;
 
     std::vector<Token> tokens;
 

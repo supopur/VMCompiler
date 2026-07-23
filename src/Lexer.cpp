@@ -4,9 +4,14 @@
 
 #include "../include/Lexer.h"
 
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <unordered_map>
 
-Lexer::Lexer(const std::string &input) : source(input), pos(0), line(1), col(0) {
+//Lexer::Lexer(const std::string &input) : source(input), pos(0), line(1), col(0) {}
+
+Lexer::Lexer(std::ifstream &file) {
 }
 
 // Characters that cannot be part of an identifier or number
@@ -16,14 +21,18 @@ bool Lexer::isInvalidForIdentifier(char c) {
 }
 
 std::vector<Token> Lexer::Tokenize() {
-    while (pos < source.length()) {
+    while(std::getline(file, currentLine)) {
+        lineNumber++;
+        std::cout << lineNumber;
+
+        while (pos < currentLine.length()) {
         char c = current();
 
         if (std::isspace(c)) {
             advance();
         } else if (std::isdigit(c)) {
             emit(readNumber());
-        } else if (c == '-' && pos + 1 < source.length() && std::isdigit(peek())) {
+        } else if (c == '-' && pos + 1 < currentLine.length() && std::isdigit(peek())) {
             emit(readNumber());
         } else if (std::isalpha(c) || c == '_') {
             emit(readIdentifier());
@@ -99,13 +108,14 @@ std::vector<Token> Lexer::Tokenize() {
             throw std::runtime_error(std::string("Unknown character: ") + c);
         }
     }
-    return tokens;
+  }
+  return tokens;
 }
 
 Token Lexer::readNumber() {
     std::string numberStr;
 
-    while (pos < source.length() && !isInvalidForIdentifier(current())) {
+    while (pos < currentLine.length() && !isInvalidForIdentifier(current())) {
         numberStr += current();
         advance();
     }
@@ -119,14 +129,14 @@ Token Lexer::readString() {
     char quote = current();
     advance();
 
-    while (pos < source.length()) {
+    while (pos < currentLine.length()) {
         if (current() == quote && peek(-1) != '\\') { // escape character
             break;
         }
         stringStr += current();
         advance();
     }
-    if (pos < source.length()) advance(); // skip closing quote
+    if (pos < currentLine.length()) advance(); // skip closing quote
 
     return Token(TokenType::STRING, stringStr, line, col);
 }
@@ -136,7 +146,7 @@ Token Lexer::readString() {
 Token Lexer::readIdentifier() {
     std::string identifierStr = "";
 
-    while (pos < source.length() && !isInvalidForIdentifier(current())) {
+    while (pos < currentLine.length() && !isInvalidForIdentifier(current())) {
         identifierStr += current();
         advance();
     }
@@ -182,7 +192,7 @@ TokenType Lexer::keywordOrIdentifier(const std::string &text) {
 
 // Helper to get the current character
 char Lexer::current() {
-    return source[pos];
+    return currentLine[pos];
 }
 
 // Helper to move to the next character
@@ -191,10 +201,10 @@ void Lexer::advance() {
 }
 
 char Lexer::peek(int offset) {
-    if (pos + offset >= source.length()) {
+    if (pos + offset >= currentLine.length()) {
         return '\0';
     }
-    return source[pos + offset];
+    return currentLine[pos + offset];
 }
 
 void Lexer::emit(const Token &token) {
