@@ -24,6 +24,15 @@ std::unique_ptr<Statement> Parser::parseStatement() {
     }
 }
 
+std::unique_ptr<BlockStatement> Parser::parseBlock() {
+    auto block = std::make_unique<BlockStatement>();
+
+    while (current().type != TokenType::KW_END) {
+        block->statements.push_back(parseStatement());
+    }
+    return block;
+}
+
 std::unique_ptr<IfStatement> Parser::parseIf() {
     expect(TokenType::KW_IF);
     auto condition = parseExpression();

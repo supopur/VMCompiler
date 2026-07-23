@@ -24,7 +24,7 @@ private:
     std::unique_ptr<Expression> parseUnary();
     std::unique_ptr<Expression> parseBinary(int precedence); // precedence = priority
 
-    std::unique_ptr<BlockStatement> parseBlock();
+    std::unique_ptr<BlockStatement> parseBlock(); // if bodies etc...
     std::unique_ptr<IfStatement> parseIf();
     std::unique_ptr<WhileStatement> parseWhile();
     std::unique_ptr<ForStatement> parseFor();
