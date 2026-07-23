@@ -17,11 +17,8 @@ int main(int argc, char* argv[]) {
   }
 
   Lexer lexer(programFile);
-  std::cout << "pred";
 
   std::vector<Token> tokens = lexer.Tokenize();
-
-  std::cout << "po";
 
         // Print tokens to stdout
   std::cout << "=== TOKENS ===" << std::endl;

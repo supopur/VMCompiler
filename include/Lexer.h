@@ -57,7 +57,7 @@ private:
     // the current CHARACTER which we are currently reading, (we do not split the string upfront)
     size_t pos;
 
-    std::fstream file;
+    std::istream &file;
     uint32_t lineNumber = 1;
 
     std::string currentLine;

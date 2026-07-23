@@ -11,7 +11,7 @@
 
 //Lexer::Lexer(const std::string &input) : source(input), pos(0), line(1), col(0) {}
 
-Lexer::Lexer(std::ifstream &file) {
+Lexer::Lexer(std::ifstream &file) : file(file), pos(0), line(1), col(0) {
 }
 
 // Characters that cannot be part of an identifier or number
@@ -21,91 +21,92 @@ bool Lexer::isInvalidForIdentifier(char c) {
 }
 
 std::vector<Token> Lexer::Tokenize() {
+    std::cout << "zavolano";
     while(std::getline(file, currentLine)) {
+        pos = 0;
+        line = lineNumber;
         lineNumber++;
-        std::cout << lineNumber;
-
         while (pos < currentLine.length()) {
-        char c = current();
-
-        if (std::isspace(c)) {
-            advance();
-        } else if (std::isdigit(c)) {
-            emit(readNumber());
-        } else if (c == '-' && pos + 1 < currentLine.length() && std::isdigit(peek())) {
-            emit(readNumber());
-        } else if (std::isalpha(c) || c == '_') {
-            emit(readIdentifier());
-        } else if (c == '"' || c == '\'') {
-            emit(readString());
-        } else if (c == '=') {
-            if (peek() == '=') {
-                emit(Token(TokenType::EQ, "==", line, col));
+            char c = current();
+  
+            if (std::isspace(c)) {
+                advance();
+            } else if (std::isdigit(c)) {
+                emit(readNumber());
+            } else if (c == '-' && pos + 1 < currentLine.length() && std::isdigit(peek())) {
+                emit(readNumber());
+            } else if (std::isalpha(c) || c == '_') {
+                emit(readIdentifier());
+            } else if (c == '"' || c == '\'') {
+                emit(readString());
+            } else if (c == '=') {
+                if (peek() == '=') {
+                    emit(Token(TokenType::EQ, "==", line, col));
+                    advance();
+                    advance();
+                } else {
+                    emit(Token(TokenType::ASSIGN, "=", line, col));
+                    advance();
+                }
+            } else if (c == '!') {
+                if (peek() == '=') {
+                    emit(Token(TokenType::NEQ, "!=", line, col));
+                    advance();
+                    advance();
+                } else {
+                    advance();
+                }
+            } else if (c == '<') {
+                if (peek() == '=') {
+                    emit(Token(TokenType::LE, "<=", line, col));
+                    advance();
+                    advance();
+                } else {
+                    emit(Token(TokenType::LT, "<", line, col));
+                    advance();
+                }
+            } else if (c == '>') {
+                if (peek() == '=') {
+                    emit(Token(TokenType::GE, ">=", line, col));
+                    advance();
+                    advance();
+                } else {
+                    emit(Token(TokenType::GT, ">", line, col));
+                    advance();
+                }
+            } else if (c == '+') {
+                emit(Token(TokenType::PLUS, "+", line, col));
+                advance();
+            } else if (c == '-') {
+                emit(Token(TokenType::MINUS, "-", line, col));
+                advance();
+            } else if (c == '*') {
+                emit(Token(TokenType::STAR, "*", line, col));
+                advance();
+            } else if (c == '/') {
+                emit(Token(TokenType::SLASH, "/", line, col));
+                advance();
+            } else if (c == '%') {
+                emit(Token(TokenType::PERCENT, "%", line, col));
+                advance();
+            } else if (c == '(') {
+                emit(Token(TokenType::LPAREN, "(", line, col));
+                advance();
+            } else if (c == ')') {
+                emit(Token(TokenType::RPAREN, ")", line, col));
+                advance();
+            } else if (c == ',') {
+                emit(Token(TokenType::COMMA, ",", line, col));
+                advance();
+            } else if (c == ';') {
+                emit(Token(TokenType::SEMICOLON, ";", line, col));
+                advance();
+            } else if (c == '.' && peek() == '.') {
+                emit(Token(TokenType::DOT_DOT, "..", line, col));
                 advance();
                 advance();
             } else {
-                emit(Token(TokenType::ASSIGN, "=", line, col));
-                advance();
-            }
-        } else if (c == '!') {
-            if (peek() == '=') {
-                emit(Token(TokenType::NEQ, "!=", line, col));
-                advance();
-                advance();
-            } else {
-                advance();
-            }
-        } else if (c == '<') {
-            if (peek() == '=') {
-                emit(Token(TokenType::LE, "<=", line, col));
-                advance();
-                advance();
-            } else {
-                emit(Token(TokenType::LT, "<", line, col));
-                advance();
-            }
-        } else if (c == '>') {
-            if (peek() == '=') {
-                emit(Token(TokenType::GE, ">=", line, col));
-                advance();
-                advance();
-            } else {
-                emit(Token(TokenType::GT, ">", line, col));
-                advance();
-            }
-        } else if (c == '+') {
-            emit(Token(TokenType::PLUS, "+", line, col));
-            advance();
-        } else if (c == '-') {
-            emit(Token(TokenType::MINUS, "-", line, col));
-            advance();
-        } else if (c == '*') {
-            emit(Token(TokenType::STAR, "*", line, col));
-            advance();
-        } else if (c == '/') {
-            emit(Token(TokenType::SLASH, "/", line, col));
-            advance();
-        } else if (c == '%') {
-            emit(Token(TokenType::PERCENT, "%", line, col));
-            advance();
-        } else if (c == '(') {
-            emit(Token(TokenType::LPAREN, "(", line, col));
-            advance();
-        } else if (c == ')') {
-            emit(Token(TokenType::RPAREN, ")", line, col));
-            advance();
-        } else if (c == ',') {
-            emit(Token(TokenType::COMMA, ",", line, col));
-            advance();
-        } else if (c == ';') {
-            emit(Token(TokenType::SEMICOLON, ";", line, col));
-            advance();
-        } else if (c == '.' && peek() == '.') {
-            emit(Token(TokenType::DOT_DOT, "..", line, col));
-            advance();
-            advance();
-        } else {
-            throw std::runtime_error(std::string("Unknown character: ") + c);
+                throw std::runtime_error(std::string("Unknown character: ") + c);
         }
     }
   }
