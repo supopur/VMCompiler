@@ -21,13 +21,13 @@ bool Lexer::isInvalidForIdentifier(char c) {
 }
 
 std::vector<Token> Lexer::Tokenize() {
-    while(std::getline(file, currentLine)) {
+    while (std::getline(file, currentLine)) {
         pos = 0;
         line = lineNumber;
         lineNumber++;
         while (pos < currentLine.length()) {
             char c = current();
-  
+
             if (std::isspace(c)) {
                 advance();
             } else if (std::isdigit(c)) {
@@ -106,10 +106,10 @@ std::vector<Token> Lexer::Tokenize() {
                 advance();
             } else {
                 throw std::runtime_error(std::string("Unknown character: ") + c);
+            }
         }
     }
-  }
-  return tokens;
+    return tokens;
 }
 
 Token Lexer::readNumber() {
@@ -130,7 +130,8 @@ Token Lexer::readString() {
     advance();
 
     while (pos < currentLine.length()) {
-        if (current() == quote && peek(-1) != '\\') { // escape character
+        if (current() == quote && peek(-1) != '\\') {
+            // escape character
             break;
         }
         stringStr += current();
@@ -161,7 +162,6 @@ Token Lexer::readIdentifier() {
         return Token(kwOrID, identifierStr, line, col);
     }
 }
-
 
 
 // here we define how the keywords should look like in the source code

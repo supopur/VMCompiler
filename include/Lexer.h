@@ -65,18 +65,24 @@ private:
     std::vector<Token> tokens;
 
     Token readNumber();
+
     Token readString();
+
     Token readIdentifier();
-    TokenType keywordOrIdentifier(const std::string& text);
+
+    TokenType keywordOrIdentifier(const std::string &text);
 
     bool isInvalidForIdentifier(char c);
 
     // helper to get the current character (from pos)
     char current();
+
     // move to the next character
     void advance();
+
     // see what character is after a given offset relative from current position
     char peek(int offset = 1);
+
     //basically create the token
     void emit(const Token &token);
 };
