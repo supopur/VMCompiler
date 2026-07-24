@@ -9,7 +9,7 @@ add_executable(MVScriptCompiler
   src/main.cpp
   src/Lexer.cpp
   src/Parser.cpp
-  src/CodeGen.cpp
+  src/Compiler.cpp
   src/AST.cpp
 )
 
