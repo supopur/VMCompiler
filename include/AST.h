@@ -117,7 +117,7 @@ public:
 class FunctionStatement : public Statement {
 public:
     std::string name;
-    std::vector<std::string> params;
+    std::vector<std::unique_ptr<Expression>> params;
     std::unique_ptr<BlockStatement> body;
 };
 

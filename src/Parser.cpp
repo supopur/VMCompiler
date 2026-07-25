@@ -236,6 +236,36 @@ std::unique_ptr<ForStatement> Parser::parseFor() {
     return forStatement;
 }
 
+std::unique_ptr<FunctionStatement> Parser::parseFunction() {
+    expect(TokenType::KW_FUNCTION);
+
+    std::string funcName = current().value;
+    expect(TokenType::IDENTIFIER);
+
+    expect(TokenType::LPAREN);
+
+    std::vector<std::unique_ptr<Expression>> args;
+
+    while (!check(TokenType::RPAREN)) {
+        args.push_back(parseExpression());
+
+        if (check(TokenType::COMMA)) {
+            advance();
+        }
+    }
+
+    expect(TokenType::RPAREN);
+
+    auto body = parseBlock();
+
+    auto function = std::make_unique<FunctionStatement>();
+    function->name = funcName;
+    function->params = std::move(args);
+    function->body = std::move(body);
+
+    return function;
+}
+
 std::unique_ptr<Statement> Parser::parseAssignment() {
     std::string varName;
     if (check(TokenType::IDENTIFIER)) {
