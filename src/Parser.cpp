@@ -179,6 +179,24 @@ std::unique_ptr<IfStatement> Parser::parseIf() {
     return ifStatement;
 }
 
+std::unique_ptr<WhileStatement> Parser::parseWhile() {
+    expect(TokenType::KW_WHILE);
+
+    auto condition = parseExpression();
+
+    expect(TokenType::KW_DO);
+    auto doBlock = parseBlock();
+
+    expect(TokenType::KW_END);
+
+    auto whileStatement = std::make_unique<WhileStatement>();
+
+    whileStatement->condition = std::move(condition);
+    whileStatement->body = std::move(doBlock);
+
+    return whileStatement;
+}
+
 std::unique_ptr<Statement> Parser::parseAssignment() {
     std::string varName;
     if (check(TokenType::IDENTIFIER)) {
