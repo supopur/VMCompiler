@@ -22,7 +22,6 @@ private:
     std::unique_ptr<Expression> parseExpression(int minPrecedence = 0);
     std::unique_ptr<Expression> parsePrimary();
     std::unique_ptr<Expression> parseUnary();
-    std::unique_ptr<Expression> parseBinary(int precedence); // precedence = priority
 
     std::unique_ptr<BlockStatement> parseBlock(); // if bodies etc...
     std::unique_ptr<IfStatement> parseIf();
