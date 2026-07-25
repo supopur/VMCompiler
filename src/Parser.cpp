@@ -197,6 +197,45 @@ std::unique_ptr<WhileStatement> Parser::parseWhile() {
     return whileStatement;
 }
 
+std::unique_ptr<ForStatement> Parser::parseFor() {
+    expect(TokenType::KW_FOR);
+
+    // Get the loop variable
+    std::string varName;
+    if (check(TokenType::IDENTIFIER)) {
+        varName = current().value;
+        advance();
+    } else {
+        throw std::runtime_error("Expected identifier in for loop");
+    }
+
+    expect(TokenType::KW_IN);
+
+    // Parse the start expression
+    auto start = parseExpression();
+
+    // Expect the dot dot operator
+    expect(TokenType::DOT_DOT);
+
+    // Parse the end expression
+    auto end = parseExpression();
+
+    expect(TokenType::KW_DO);
+
+    // Parse the loop body
+    auto body = parseBlock();
+
+    expect(TokenType::KW_END);
+
+    auto forStatement = std::make_unique<ForStatement>();
+    forStatement->var = varName;
+    forStatement->start = std::move(start);
+    forStatement->end = std::move(end);
+    forStatement->body = std::move(body);
+
+    return forStatement;
+}
+
 std::unique_ptr<Statement> Parser::parseAssignment() {
     std::string varName;
     if (check(TokenType::IDENTIFIER)) {
