@@ -48,17 +48,17 @@ public:
     BinaryOp op;
 };
 
-// Unary operation: op operand
-class UnaryOpExpr : public Expression {
-public:
-    std::unique_ptr<Expression> operand;
-    UnaryOp op;
-};
-
 // Literal value: 15, "hello", true
 class LiteralExpr : public Expression {
 public:
-    std::string value;
+    std::unique_ptr<Expression> value;
+};
+
+// Unary operation: op operand
+class UnaryOpExpr : public Expression {
+public:
+    std::unique_ptr<LiteralExpr> operand;
+    UnaryOp op;
 };
 
 // Identifier: variable or function name

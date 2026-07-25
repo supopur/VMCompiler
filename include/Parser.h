@@ -19,7 +19,7 @@ private:
 
     //parsing functions
     std::unique_ptr<Statement> parseStatement();
-    std::unique_ptr<Expression> parseExpression();
+    std::unique_ptr<Expression> parseExpression(int minPrecedence = 0);
     std::unique_ptr<Expression> parsePrimary();
     std::unique_ptr<Expression> parseUnary();
     std::unique_ptr<Expression> parseBinary(int precedence); // precedence = priority
@@ -29,17 +29,18 @@ private:
     std::unique_ptr<WhileStatement> parseWhile();
     std::unique_ptr<ForStatement> parseFor();
     std::unique_ptr<FunctionStatement> parseFunction();
+    std::unique_ptr<Statement> parseAssignment();
 
 
     //helpers
     void advance();
     void expect(TokenType type); // check if current token is of this type, if not throw err, if yes advance
     bool check(TokenType type); // same as expect, except it doesn't consume/advance
-    // todo implmenet
-    //bool match() // checks if current token is any of given types
+    bool match(std::vector<TokenType> matches, int offset = 0); // checks if current token (or offset) is any of given types
     Token current();
     Token peek(int offset = 1);
-
+    static int getPrecedence(TokenType op);
+    bool isOperator(TokenType type);
 };
 
 
