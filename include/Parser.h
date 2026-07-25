@@ -40,7 +40,7 @@ private:
     Token current();
     Token peek(int offset = 1);
     static int getPrecedence(TokenType op);
-    bool isOperator(TokenType type);
+    static bool isOperator(TokenType type);
 };
 
 

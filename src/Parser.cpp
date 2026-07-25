@@ -8,12 +8,12 @@
 
 
 // constructor
-Parser::Parser(const std::vector<Token>& tokens)
+Parser::Parser(const std::vector<Token> &tokens)
     : tokens(tokens), currentToken(0) {
 }
 
-ASTNode* Parser::parse() {
-    auto* programBody = new BlockStatement();
+ASTNode *Parser::parse() {
+    auto *programBody = new BlockStatement();
     while (currentToken < tokens.size()) {
         programBody->statements.push_back(parseStatement());
     }
@@ -25,8 +25,17 @@ ASTNode* Parser::parse() {
 std::unique_ptr<Statement> Parser::parseStatement() {
     if (check(TokenType::KW_IF)) {
         return parseIf();
-    } else if (check(TokenType::IDENTIFIER) && peek().type == TokenType::ASSIGN) { // variable assignment
+    } else if (check(TokenType::KW_WHILE)) {
+        return parseWhile();
+    } else if (check(TokenType::KW_FOR)) {
+        return parseFor();
+    } else if (check(TokenType::KW_FUNCTION)) {
+        return parseFunction();
+    } else if (check(TokenType::IDENTIFIER) && peek().type == TokenType::ASSIGN) {
+        // variable assignment
         return parseAssignment();
+    } else {
+        throw std::runtime_error("Expected statement");
     }
 }
 
@@ -57,32 +66,81 @@ std::unique_ptr<Expression> Parser::parseExpression(int minPrecedence) {
 
 // atomic expressions, ones that can't be really broken down (2 + 2 + 5 - 10)
 std::unique_ptr<Expression> Parser::parsePrimary() {
+    switch (current().type) {
+        case TokenType::STRING:
+        case TokenType::BOOLEAN:
+        case TokenType::NUMBER: {
+            std::unique_ptr<LiteralExpr> literal = std::make_unique<LiteralExpr>();
+            literal->value = current().value;
+            advance();
+            return literal;
+        }
+        case TokenType::IDENTIFIER: {
+            std::string name = current().value;
+            advance();
 
+            // check if it's a function call
+            if (check(TokenType::LPAREN)) {
+                advance();
+                std::vector<std::unique_ptr<Expression> > args;
+
+                while (!check(TokenType::RPAREN)) {
+                    args.push_back(parseExpression());
+
+                    if (check(TokenType::COMMA)) {
+                        advance();
+                    }
+                }
+
+                expect(TokenType::RPAREN);
+
+                std::unique_ptr<FunctionCallExpr> functionCall = std::make_unique<FunctionCallExpr>();
+
+                functionCall->name = name;
+                functionCall->args = std::move(args);
+
+                return functionCall;
+            }
+
+            // just an identifier/var
+            std::unique_ptr<IdentifierExpr> identifier = std::make_unique<IdentifierExpr>();
+
+            identifier->name = current().value;
+
+            return identifier;
+        }
+        case TokenType::LPAREN: {
+            // (1 + 2) * 2
+            advance();
+            std::unique_ptr<Expression> expression = parseExpression();
+            expect(TokenType::RPAREN);
+            return expression;
+        }
+        default: {
+            throw std::runtime_error("Expected expression");
+        }
+    }
 }
 
 std::unique_ptr<Expression> Parser::parseUnary() {
     if (current().type == TokenType::MINUS) {
         advance(); // consume operator
 
-        std::unique_ptr<LiteralExpr> operand = std::make_unique<LiteralExpr>();
+        auto operand = parseUnary();
 
-        operand->value = parseUnary(); // recursive! -(-5) works
-
-        std::unique_ptr<UnaryOpExpr> unary = std::make_unique<UnaryOpExpr>();
-
+        auto unary = std::make_unique<UnaryOpExpr>();
         unary->op = UnaryOp::NEGATE;
         unary->operand = std::move(operand);
+        return unary;
     } else if (current().type == TokenType::KW_NOT) {
         advance(); // consume operator
 
-        std::unique_ptr<LiteralExpr> operand = std::make_unique<LiteralExpr>();
+        auto operand = parseUnary();
 
-        operand->value = parseUnary(); // recursive! -(-5) works
-
-        std::unique_ptr<UnaryOpExpr> unary = std::make_unique<UnaryOpExpr>();
-
+        auto unary = std::make_unique<UnaryOpExpr>();
         unary->op = UnaryOp::NOT;
         unary->operand = std::move(operand);
+        return unary;
     } else {
         // no operator
         return parsePrimary();
@@ -131,27 +189,13 @@ std::unique_ptr<Statement> Parser::parseAssignment() {
     }
     expect(TokenType::ASSIGN);
 
+    auto value = parseExpression();  // Parse the right-hand side
 
+    auto assignment = std::make_unique<AssignmentStatement>();
+    assignment->name = varName;
+    assignment->value = std::move(value);
 
-    // we have a statement instead of a single literal
-    // if (match(operatorTokens,1)) {
-    //     throw std::runtime_error("oops not implemented");
-    // } else if (match(literalTokens)) {
-    //     // the actual value
-    //     std::unique_ptr<LiteralExpr> literal = std::make_unique<LiteralExpr>();
-    //     // asign the value
-    //     literal->value = current().value;
-    //
-    //     // the entire statement (x = 5)
-    //     std::unique_ptr<AssignmentStatement> assignment = std::make_unique<AssignmentStatement>();
-    //     // the var name (x)
-    //     assignment->name = varName;
-    //     // it's value (5)
-    //     assignment->value = std::move(literal);
-    //     return assignment;
-    // } else {
-    //     throw std::runtime_error("invalid token type");
-    // }
+    return assignment;
 }
 
 /* HELPERS*/
@@ -194,7 +238,7 @@ int Parser::getPrecedence(const TokenType op) {
     }
 }
 
-bool isOperator(const TokenType type) {
+bool Parser::isOperator(const TokenType type) {
     static const std::unordered_set<TokenType> operators = {
         TokenType::PLUS, TokenType::MINUS, TokenType::STAR, TokenType::SLASH, TokenType::PERCENT,
         TokenType::EQ, TokenType::NEQ, TokenType::LT, TokenType::GT, TokenType::LE, TokenType::GE,
@@ -221,4 +265,3 @@ bool Parser::match(std::vector<TokenType> matches, int offset) {
     }
     return false;
 }
-

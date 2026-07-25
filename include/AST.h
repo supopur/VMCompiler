@@ -51,13 +51,13 @@ public:
 // Literal value: 15, "hello", true
 class LiteralExpr : public Expression {
 public:
-    std::unique_ptr<Expression> value;
+    std::string value;
 };
 
 // Unary operation: op operand
 class UnaryOpExpr : public Expression {
 public:
-    std::unique_ptr<LiteralExpr> operand;
+    std::unique_ptr<Expression> operand;
     UnaryOp op;
 };
 
