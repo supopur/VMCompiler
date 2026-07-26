@@ -2,11 +2,12 @@
 // Created by Matouš Smékal on 22.07.2026.
 //
 
-#ifndef MVSCRIPTCOMPILER_CODEGEN_H
-#define MVSCRIPTCOMPILER_CODEGEN_H
+#ifndef MVSCRIPTCOMPILER_COMPILER_H
+#define MVSCRIPTCOMPILER_COMPILER_H
 
 #include "AST.h"
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <variant>
 
@@ -49,18 +50,55 @@ public:
   // Constructor
   Compiler(ASTNode* Nodes);
 
+  // Main compile function
   std::vector<Instruction> compile(ASTNode* Nodes);
 
 private:
+  // All generated instructions
   std::vector<Instruction> instructions;
-  std::vector<Value> constants;
 
+  // Constants table
+  std::vector<Value> constantTable;
+
+  // Variable table and slot
+  std::unordered_map<std::string, int> variableTable;
+  int nextSlot = 0;
+
+  // Input nodes
   ASTNode* AllNodes;
 
-  // Emit overloads
+  // --- Helper functions ---
+
+  // Emit function and overloads
   void emit(ByteCode bc);
   void emit(ByteCode bc, int operand);
   void emit(ByteCode bc, const std::string& strOperand);
+
+  // Adds constant to the constant table
+  int addConstant(Value& v);
+
+  // Checks slot in varible table
+  int resolveVariable(const std::string& name);
+
+  // Main compile routers functions
+  void compileStatement(Statement* stmt);
+  void compileExpession(Expression* expr);
+
+  // Compile functions - statements
+  void compileBlock(BlockStatement* block);
+  void compileAssignment(AssignmentStatement* stmt);
+  void compileIf(IfStatement* stmt);
+  void compileWhile(WhileStatement* stmt);
+  void compileFor(ForStatement* stmt);
+  void compileFunction(FunctionStatement* stmt);
+  void compileExpressionStmt(ExpressionStatement* stmt);
+
+  // Compile functions - expressions
+  void compileBinaryOp(BinaryOpExpr* expr);
+  void compileLiteral(LiteralExpr* expr);
+  void compileUnaryOp(UnaryOpExpr* expr);
+  void compileIdentifier(IdentifierExpr* expr);
+  void compileCall(FunctionCallExpr* expr);
 
 };
 
