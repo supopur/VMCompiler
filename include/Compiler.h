@@ -21,11 +21,11 @@ enum class ByteCode {
   // Stack manipulation
   POP, DUP, PUSH_CONST,
   // Logic
-  AND, OR, NOT,
+  AND, OR, NOT, NEGATE,
   // Bit operations
   BAND, BOR, BXOR, BNOT, SHL, SHR,
   // Jumps
-  JUMP, JUMP_IF_FALSE, JUMP_IF_TRUE,
+  JUMP, JUMP_IF_FALSE,
   // Functions
   RETURN, CALL,
   // Housekeeping
@@ -79,6 +79,9 @@ private:
 
   // Checks slot in varible table
   int resolveVariable(const std::string& name);
+
+  // Map function for BinaryOp -> ByteCode
+  ByteCode binaryOpToByteCode(BinaryOp op);
 
   // Main compile routers functions
   void compileStatement(Statement* stmt);

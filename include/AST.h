@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <variant>
+
+// Custom value type for ByteCode
+using Value = std::variant<double, std::string, bool>;
 
 // Base class for every node
 class ASTNode {
@@ -51,7 +55,7 @@ public:
 // Literal value: 15, "hello", true
 class LiteralExpr : public Expression {
 public:
-    std::string value;
+    Value value;
 };
 
 // Unary operation: op operand
