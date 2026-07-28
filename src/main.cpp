@@ -1,7 +1,17 @@
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 #include "../include/Lexer.h"
+#include "AST.h"
+#include <filesystem>
+#include <Compiler.h>
+
+std::string fileNameGen(const std::string& inputFilename) {
+  std::filesystem::path p(inputFilename);
+  p.replace_extension(".mvbc");
+  return p.string();
+}
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -9,7 +19,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    std::string inputFile = argv[1];
     std::ifstream programFile(argv[1]);
+
+    std::string outputFile = fileNameGen(inputFile);
 
     if (!programFile.is_open()) {
         std::cerr << "ERROR: Could not open the file";
@@ -36,6 +49,14 @@ int main(int argc, char *argv[]) {
     }
 
     std::cout << "Total tokens: " << tokens.size() << std::endl;
+    
+    ASTNode ASTNodes;
+
+    Compiler compiler(&ASTNodes);
+    compiler.compile();
+    compiler.serialize(outputFile);
+
+    std::cout << "Compiled to: " << outputFile << std::endl;
 
     return 0;
 }
