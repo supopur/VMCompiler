@@ -39,6 +39,32 @@ std::unique_ptr<Statement> Parser::parseStatement() {
     }
 }
 
+BinaryOp Parser::tokenTypeToBinaryOp(TokenType op) {
+    switch (op) {
+        // Arithmetic
+        case TokenType::PLUS:    return BinaryOp::ADD;
+        case TokenType::MINUS:   return BinaryOp::SUB;
+        case TokenType::STAR:    return BinaryOp::MUL;
+        case TokenType::SLASH:   return BinaryOp::DIV;
+        case TokenType::PERCENT: return BinaryOp::MOD;
+
+            // Comparison
+        case TokenType::EQ:  return BinaryOp::EQ;
+        case TokenType::NEQ: return BinaryOp::NEQ;
+        case TokenType::LT:  return BinaryOp::LT;
+        case TokenType::GT:  return BinaryOp::GT;
+        case TokenType::LE:  return BinaryOp::LE;
+        case TokenType::GE:  return BinaryOp::GE;
+
+            // Logical
+        case TokenType::KW_AND: return BinaryOp::AND;
+        case TokenType::KW_OR:  return BinaryOp::OR;
+
+        default:
+            throw std::invalid_argument("TokenType is not a binary operator");
+    }
+}
+
 std::unique_ptr<Expression> Parser::parseExpression(int minPrecedence) {
     // start with the first one
     std::unique_ptr<BinaryOpExpr> left = std::make_unique<BinaryOpExpr>();
@@ -48,15 +74,16 @@ std::unique_ptr<Expression> Parser::parseExpression(int minPrecedence) {
 
     int precedence = 0;
 
-    while (isOperator(current().type) && precedence >= minPrecedence) {
+    while (isOperator(current().type) && getPrecedence(current().type) >= minPrecedence) {
         const TokenType op = current().type;
         const int opPrecedence = getPrecedence(op);
 
         advance(); // consume the operator
 
-        std::unique_ptr<Expression> right = parseExpression(opPrecedence);
+        std::unique_ptr<Expression> right = parseExpression(opPrecedence + 1);
 
         left = std::make_unique<BinaryOpExpr>();
+        left->op = tokenTypeToBinaryOp(op);
         left->left = std::move(left);
         left->right = std::move(right);
     }

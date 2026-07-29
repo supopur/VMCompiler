@@ -19,6 +19,9 @@ private:
 
     //parsing functions
     std::unique_ptr<Statement> parseStatement();
+
+    static BinaryOp tokenTypeToBinaryOp(TokenType op);
+
     std::unique_ptr<Expression> parseExpression(int minPrecedence = 0);
     std::unique_ptr<Expression> parsePrimary();
     std::unique_ptr<Expression> parseUnary();
