@@ -51,7 +51,10 @@ public:
   Compiler(ASTNode* Nodes);
 
   // Main compile function
-  std::vector<Instruction> compile(ASTNode* Nodes);
+  std::vector<Instruction> compile();
+
+  // Makes the output file
+  void serialize(const std::string& filename);
 
 private:
   // All generated instructions
@@ -64,6 +67,8 @@ private:
   std::unordered_map<std::string, int> variableTable;
   int nextSlot = 0;
 
+  std::unordered_map<std::string, size_t> functionTable;
+
   // Input nodes
   ASTNode* AllNodes;
 
@@ -75,7 +80,7 @@ private:
   void emit(ByteCode bc, const std::string& strOperand);
 
   // Adds constant to the constant table
-  int addConstant(Value& v);
+  int addConstant(const Value& v);
 
   // Checks slot in varible table
   int resolveVariable(const std::string& name);
