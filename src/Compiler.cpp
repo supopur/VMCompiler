@@ -34,7 +34,7 @@ void Compiler::serialize(const std::string& filename) {
     }
 
     // header
-    out.write("MVBC", 4);
+    out.write("VMBC", 4);
 
     int32_t version = 1;
     int32_t variableCount = nextSlot;

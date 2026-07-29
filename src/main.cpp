@@ -11,7 +11,7 @@
 
 std::string fileNameGen(const std::string& inputFilename) {
   std::filesystem::path p(inputFilename);
-  p.replace_extension(".mvbc");
+  p.replace_extension(".vmbc");
   return p.string();
 }
 
