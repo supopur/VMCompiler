@@ -205,44 +205,22 @@ std::unique_ptr<BlockStatement> Parser::parseBlock() {
 std::unique_ptr<IfStatement> Parser::parseIf() {
     expect(TokenType::KW_IF);
     auto condition = parseExpression();
+
     expect(TokenType::KW_THEN);
     auto thenBlock = parseBlock();
+
+    std::unique_ptr<BlockStatement> elseBlock;
+    if (check(TokenType::KW_ELSE)) {
+        advance();
+        elseBlock = parseBlock();
+    }
+
+    expect(TokenType::KW_END);
 
     auto ifStatement = std::make_unique<IfStatement>();
     ifStatement->condition = std::move(condition);
     ifStatement->thenBlock = std::move(thenBlock);
-
-    // Handle else/else-if chain with a single end token
-    IfStatement* currentIf = ifStatement.get();
-
-    while (check(TokenType::KW_ELSE)) {
-        advance();
-
-        if (check(TokenType::KW_IF)) {
-            // else if - parse inline without consuming end
-            advance(); // consume if
-
-            auto nestedIf = std::make_unique<IfStatement>();
-            nestedIf->condition = parseExpression();
-            expect(TokenType::KW_THEN);
-            nestedIf->thenBlock = parseBlock();
-
-            // Wrap nested if in a block and attach as else block
-            auto elseBlock = std::make_unique<BlockStatement>();
-            IfStatement* nestedIfPtr = nestedIf.get();
-            elseBlock->statements.push_back(std::move(nestedIf));
-            currentIf->elseBlock = std::move(elseBlock);
-
-            // Move pointer to nested if for potential chaining
-            currentIf = nestedIfPtr;
-        } else {
-            // Regular else block
-            currentIf->elseBlock = parseBlock();
-            break;
-        }
-    }
-
-    expect(TokenType::KW_END);
+    ifStatement->elseBlock = std::move(elseBlock);
 
     return ifStatement;
 }
@@ -376,17 +354,9 @@ void Parser::advance() {
     currentToken++;
 }
 
-<<<<<<< HEAD
  Token Parser::current() {
     if (currentToken >= tokens.size()) {
         throw std::runtime_error("Unexpected end of input (missing 'end'?)");
-=======
-Token Parser::current() {
-    if (currentToken >= tokens.size()) {
-        // Return a synthetic EOF token if we reach the end
-        static Token eofToken = {TokenType::EOF_TOKEN, "", 0, 0};
-        return eofToken;
->>>>>>> 624618d86aece87684908f13706e93ef7ab603b7
     }
     return tokens[currentToken];
 }
