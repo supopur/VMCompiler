@@ -180,7 +180,8 @@ TokenType Lexer::keywordOrIdentifier(const std::string &text) {
         {"true", TokenType::KW_TRUE},
         {"false", TokenType::KW_FALSE},
         {"end", TokenType::KW_END},
-        {"func", TokenType::KW_FUNCTION}
+        {"func", TokenType::KW_FUNCTION},
+        {"return", TokenType::KW_RETURN}
     };
 
     auto it = keywords.find(text);

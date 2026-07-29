@@ -29,7 +29,7 @@ enum class TokenType {
     LPAREN, RPAREN, COMMA, SEMICOLON, DOT_DOT,
 
     // Special
-    EOF_TOKEN, ERROR
+    EOF_TOKEN, ERROR, KW_RETURN
 };
 
 struct Token {

@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <Compiler.h>
 
+#include "Parser.h"
+
 std::string fileNameGen(const std::string& inputFilename) {
   std::filesystem::path p(inputFilename);
   p.replace_extension(".mvbc");
@@ -49,10 +51,12 @@ int main(int argc, char *argv[]) {
     }
 
     std::cout << "Total tokens: " << tokens.size() << std::endl;
-    
-    ASTNode ASTNodes;
 
-    Compiler compiler(&ASTNodes);
+    Parser parser = Parser(tokens);
+    ASTNode *ASTNodes = parser.parse();
+
+
+    Compiler compiler(ASTNodes);
     compiler.compile();
     compiler.serialize(outputFile);
 

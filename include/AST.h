@@ -86,6 +86,11 @@ public:
     std::vector<std::unique_ptr<Statement>> statements;
 };
 
+class ReturnStatement : public Statement {
+    public:
+    std::unique_ptr<Expression> value;
+};
+
 // Assignment: x = value
 class AssignmentStatement : public Statement {
 public:
@@ -121,7 +126,7 @@ public:
 class FunctionStatement : public Statement {
 public:
     std::string name;
-    std::vector<std::string> params;
+    std::vector<std::unique_ptr<Expression>> params;
     std::unique_ptr<BlockStatement> body;
 };
 

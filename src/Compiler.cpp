@@ -148,12 +148,15 @@ void Compiler::compileStatement(Statement* stmt) {
     compileFor(s);
   } else if (auto* s = dynamic_cast<FunctionStatement*>(stmt)) {
     compileFunction(s);
+  } else if (auto* s = dynamic_cast<ReturnStatement*>(stmt)) {
+    // TODO IMPLEMENT
+    //compileReturn(s);
   } else if (auto* s = dynamic_cast<ExpressionStatement*>(stmt)) {
-    compileExpressionStmt(s); 
+    compileExpressionStmt(s);
   } else {
     throw std::runtime_error("Unknown statement type");
   }
-};
+}
 
 void Compiler::compileExpession(Expression* expr) {
   if (auto* e = dynamic_cast<BinaryOpExpr*>(expr)) {
@@ -254,8 +257,12 @@ void Compiler::compileFunction(FunctionStatement* stmt) {
   size_t functionStart = instructions.size();
   functionTable[stmt->name] = functionStart;
 
-  for (const auto& param : stmt->params) {
-    resolveVariable(param);
+  for (const auto& paramExpr : stmt->params) {
+    if (auto* idExpr = dynamic_cast<IdentifierExpr*>(paramExpr.get())) {
+      resolveVariable(idExpr->name);
+    } else {
+      throw std::runtime_error("Function parameter must be an identifier");
+    }
   }
 
   compileStatement(stmt->body.get());
