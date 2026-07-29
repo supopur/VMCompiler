@@ -6,6 +6,7 @@
 #include "AST.h"
 #include <filesystem>
 #include <Compiler.h>
+#include <stdexcept>
 
 #include "Parser.h"
 
@@ -31,36 +32,43 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    Lexer lexer(programFile);
+    try {
+        Lexer lexer(programFile);
 
-    std::vector<Token> tokens = lexer.Tokenize();
+        std::vector<Token> tokens = lexer.Tokenize();
 
-    // Print tokens to stdout
-    std::cout << "=== TOKENS ===" << std::endl;
-    std::cout << std::string(60, '-') << std::endl;
+        // Print tokens to stdout
+        std::cout << "=== TOKENS ===" << std::endl;
+        std::cout << std::string(60, '-') << std::endl;
 
-    for (size_t i = 0; i < tokens.size(); i++) {
-        const Token &token = tokens[i];
+        for (size_t i = 0; i < tokens.size(); i++) {
+            const Token &token = tokens[i];
 
-        std::cout << "Token #" << i << std::endl;
-        std::cout << "  Type:   " << static_cast<int>(token.type) << std::endl;
-        std::cout << "  Value:  \"" << token.value << "\"" << std::endl;
-        std::cout << "  Line:   " << token.line << std::endl;
-        std::cout << "  Column: " << token.column << std::endl;
-        std::cout << std::endl;
+            std::cout << "Token #" << i << std::endl;
+            std::cout << "  Type:   " << static_cast<int>(token.type) << std::endl;
+            std::cout << "  Value:  \"" << token.value << "\"" << std::endl;
+            std::cout << "  Line:   " << token.line << std::endl;
+            std::cout << "  Column: " << token.column << std::endl;
+            std::cout << std::endl;
+        }
+
+        std::cout << "Total tokens: " << tokens.size() << std::endl;
+
+        Parser parser = Parser(tokens);
+        auto ASTNodes = parser.parse();
+
+        Compiler compiler(ASTNodes.get());      
+        compiler.compile();
+        compiler.serialize(outputFile);
+
+        std::cout << "Compiled to: " << outputFile << std::endl;
+    } catch (const std::runtime_error& e) {
+        std::cerr << "Compile error: " << e.what() << std::endl;
+        return 1;
+    } catch (const std::exception& e) {
+        std::cerr << "Unexpected error: " << e.what() << std::endl;
+        return 1;
     }
-
-    std::cout << "Total tokens: " << tokens.size() << std::endl;
-
-    Parser parser = Parser(tokens);
-    ASTNode *ASTNodes = parser.parse();
-
-
-    Compiler compiler(ASTNodes);
-    compiler.compile();
-    compiler.serialize(outputFile);
-
-    std::cout << "Compiled to: " << outputFile << std::endl;
 
     return 0;
 }

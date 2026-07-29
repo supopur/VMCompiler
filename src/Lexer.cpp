@@ -109,6 +109,7 @@ std::vector<Token> Lexer::Tokenize() {
             }
         }
     }
+    tokens.push_back(Token({TokenType::EOF_TOKEN, "", line, col}));
     return tokens;
 }
 

@@ -132,6 +132,7 @@ ByteCode Compiler::binaryOpToByteCode(BinaryOp op) {
     case BinaryOp::AND: return ByteCode::AND;
     case BinaryOp::OR: return ByteCode::OR;
   }
+  throw std::runtime_error("Unknown binary operator");
 }
 
 // Compile routers functions
@@ -287,7 +288,7 @@ void Compiler::compileBinaryOp(BinaryOpExpr* expr) {
 
 void Compiler::compileLiteral(LiteralExpr* expr) {
   int idx = addConstant(expr->value);
-  emit(ByteCode::LOAD, idx);
+  emit(ByteCode::PUSH_CONST, idx);
 };
 
 void Compiler::compileUnaryOp(UnaryOpExpr* expr) {

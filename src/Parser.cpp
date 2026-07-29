@@ -3,8 +3,11 @@
 //
 
 #include "../include/Parser.h"
+#include "AST.h"
+#include "Lexer.h"
 
 #include <iostream>
+#include <memory>
 #include <unordered_set>
 
 
@@ -13,9 +16,9 @@ Parser::Parser(const std::vector<Token> &tokens)
     : tokens(tokens), currentToken(0) {
 }
 
-ASTNode *Parser::parse() {
-    auto *programBody = new BlockStatement();
-    while (currentToken < tokens.size()) {
+std::unique_ptr<ASTNode> Parser::parse() {
+    auto programBody = std::make_unique<BlockStatement>();
+    while (current().type != TokenType::EOF_TOKEN) {
         programBody->statements.push_back(parseStatement());
     }
     return programBody;
@@ -105,7 +108,13 @@ std::unique_ptr<Expression> Parser::parsePrimary() {
         case TokenType::KW_FALSE:
         case TokenType::NUMBER: {
             std::unique_ptr<LiteralExpr> literal = std::make_unique<LiteralExpr>();
-            literal->value = current().value;
+            if (check(TokenType::NUMBER)) {
+              literal->value = std::stod(current().value);
+            } else if (check(TokenType::STRING)) {
+              literal->value = current().value;
+            } else if (check(TokenType::KW_TRUE) || check(TokenType::KW_FALSE)) {
+              literal->value = (current().type == TokenType::KW_TRUE);
+            }
             advance();
             return literal;
         }
@@ -184,11 +193,12 @@ std::unique_ptr<Expression> Parser::parseUnary() {
 
 std::unique_ptr<BlockStatement> Parser::parseBlock() {
     auto block = std::make_unique<BlockStatement>();
-
-    while (current().type != TokenType::KW_END &&
-           current().type != TokenType::KW_ELSE) {
-        block->statements.push_back(parseStatement());
-           }
+    
+    while (currentToken < tokens.size() &&
+        current().type != TokenType::KW_END &&
+        current().type != TokenType::KW_ELSE) {
+      block->statements.push_back(parseStatement());
+    }
     return block;
 }
 
@@ -344,7 +354,10 @@ void Parser::advance() {
     currentToken++;
 }
 
-Token Parser::current() {
+ Token Parser::current() {
+    if (currentToken >= tokens.size()) {
+        throw std::runtime_error("Unexpected end of input (missing 'end'?)");
+    }
     return tokens[currentToken];
 }
 
@@ -392,7 +405,7 @@ void Parser::expect(TokenType type) {
     if (current().type == type) {
         advance();
     } else {
-        throw new std::runtime_error("Expected token type");
+        throw std::runtime_error("Expected token type");
     }
 }
 

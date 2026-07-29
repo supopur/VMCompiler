@@ -6,12 +6,13 @@
 #define MVSCRIPTCOMPILER_PARSER_H
 #include "AST.h"
 #include "Lexer.h"
+#include <memory>
 
 
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens);
-    ASTNode* parse();
+    std::unique_ptr<ASTNode> parse();
 
 private:
     const std::vector<Token>& tokens;
