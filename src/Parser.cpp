@@ -101,6 +101,8 @@ std::unique_ptr<Expression> Parser::parsePrimary() {
     switch (current().type) {
         case TokenType::STRING:
         case TokenType::BOOLEAN:
+        case TokenType::KW_TRUE:
+        case TokenType::KW_FALSE:
         case TokenType::NUMBER: {
             std::unique_ptr<LiteralExpr> literal = std::make_unique<LiteralExpr>();
             literal->value = current().value;
@@ -149,6 +151,7 @@ std::unique_ptr<Expression> Parser::parsePrimary() {
             return expression;
         }
         default: {
+            std::cout << currentToken << std::endl;
             throw std::runtime_error("Expected expression");
         }
     }
