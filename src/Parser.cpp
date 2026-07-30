@@ -46,6 +46,8 @@ std::unique_ptr<Statement> Parser::parseStatement() {
         auto exprStmt = std::make_unique<ExpressionStatement>();
         exprStmt->expression = std::move(expr);
         return exprStmt;
+    } else if (check(TokenType::EOF_TOKEN)) {
+        return nullptr;
     } else {
         std::cout << "Unexpected token: " << currentToken << std::endl;
         throw std::runtime_error("Expected statement");
