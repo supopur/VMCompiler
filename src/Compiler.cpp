@@ -4,11 +4,9 @@
 
 #include "../include/Compiler.h"
 #include "AST.h"
-#include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <fstream>
-#include <cstdint>
 
 // Constructor
 Compiler::Compiler(ASTNode* Nodes) : AllNodes(Nodes) {};
@@ -137,6 +135,10 @@ ByteCode Compiler::binaryOpToByteCode(BinaryOp op) {
 
 // Compile routers functions
 void Compiler::compileStatement(Statement* stmt) {
+  if (!stmt) {
+    throw NullPointerError("Null statement passed to compileStatement");
+  }
+
   if (auto* s = dynamic_cast<BlockStatement*>(stmt)) {
     compileBlock(s);
   } else if (auto* s = dynamic_cast<AssignmentStatement*>(stmt)) {
@@ -159,7 +161,11 @@ void Compiler::compileStatement(Statement* stmt) {
   }
 }
 
-void Compiler::compileExpession(Expression* expr) {
+void Compiler::compileExpression(Expression* expr) {
+  if (!expr) {
+    throw NullPointerError("Null expression passed to compileExpression");
+  }
+
   if (auto* e = dynamic_cast<BinaryOpExpr*>(expr)) {
     compileBinaryOp(e);
   } else if (auto* e = dynamic_cast<LiteralExpr*>(expr)) {
@@ -178,19 +184,42 @@ void Compiler::compileExpession(Expression* expr) {
 
 // Statements functions
 void Compiler::compileBlock(BlockStatement* block) {
+  if (!block) {
+    throw NullPointerError("Null block passed to compileBlock");
+  }
+
   for (auto& stmt : block->statements) {
-    compileStatement(stmt.get());
+    if (stmt) {
+      compileStatement(stmt.get());
+    }
   }
 };
 
 void Compiler::compileAssignment(AssignmentStatement* stmt) {
-  compileExpession(stmt->value.get());
+  if (!stmt) {
+    throw NullPointerError("Null assignment statement passed to compileAssignment");
+  }
+  if (!stmt->value) {
+    throw NullPointerError("Null value in assignment statement");
+  }
+
+  compileExpression(stmt->value.get());
   int slot = resolveVariable(stmt->name);
   emit(ByteCode::STORE, slot);
 };
 
 void Compiler::compileIf(IfStatement* stmt) {
-  compileExpession(stmt->condition.get());
+  if (!stmt) {
+    throw NullPointerError("Null if statement passed to compileIf");
+  }
+  if (!stmt->condition) {
+    throw NullPointerError("Null condition in if statement");
+  }
+  if (!stmt->thenBlock) {
+    throw NullPointerError("Null then block in if statement");
+  }
+
+  compileExpression(stmt->condition.get());
 
   size_t jumpToElsePos = instructions.size();
   emit(ByteCode::JUMP_IF_FALSE, 0);
@@ -210,9 +239,19 @@ void Compiler::compileIf(IfStatement* stmt) {
 };
 
 void Compiler::compileWhile(WhileStatement* stmt) {
+  if (!stmt) {
+    throw NullPointerError("Null while statement passed to compileWhile");
+  }
+  if (!stmt->condition) {
+    throw NullPointerError("Null condition in while statement");
+  }
+  if (!stmt->body) {
+    throw NullPointerError("Null body in while statement");
+  }
+
   size_t loopStart = instructions.size();
 
-  compileExpession(stmt->condition.get());
+  compileExpression(stmt->condition.get());
 
   size_t jumpToEndPos = instructions.size();
   emit(ByteCode::JUMP_IF_FALSE, 0);
@@ -225,14 +264,27 @@ void Compiler::compileWhile(WhileStatement* stmt) {
 };
 
 void Compiler::compileFor(ForStatement* stmt) {
-  compileExpession(stmt->start.get());
+  if (!stmt) {
+    throw NullPointerError("Null for statement passed to compileFor");
+  }
+  if (!stmt->start) {
+    throw NullPointerError("Null start expression in for statement");
+  }
+  if (!stmt->end) {
+    throw NullPointerError("Null end expression in for statement");
+  }
+  if (!stmt->body) {
+    throw NullPointerError("Null body in for statement");
+  }
+
+  compileExpression(stmt->start.get());
   int slot = resolveVariable(stmt->var);
   emit(ByteCode::STORE, slot);
 
   size_t loopStart = instructions.size();
 
   emit(ByteCode::LOAD, slot);
-  compileExpession(stmt->end.get());
+  compileExpression(stmt->end.get());
   emit(ByteCode::LE);
 
   size_t jumpToEndPos = instructions.size();
@@ -252,19 +304,36 @@ void Compiler::compileFor(ForStatement* stmt) {
 };
 
 void Compiler::compileFunction(FunctionStatement* stmt) {
+  if (!stmt) {
+    throw NullPointerError("Null function statement passed to compileFunction");
+  }
+  if (!stmt->body) {
+    throw NullPointerError("Null body in function statement");
+  }
+
+  // Check for duplicate function definition
+  if (functionTable.find(stmt->name) != functionTable.end()) {
+    throw DuplicateFunctionError("Function '" + stmt->name + "' is already defined");
+  }
+
   size_t jumpOverPos = instructions.size();
   emit(ByteCode::JUMP, 0);
 
   size_t functionStart = instructions.size();
-  functionTable[stmt->name] = functionStart;
 
   for (const auto& paramExpr : stmt->params) {
+    if (!paramExpr) {
+      throw NullPointerError("Null parameter in function '" + stmt->name + "'");
+    }
     if (auto* idExpr = dynamic_cast<IdentifierExpr*>(paramExpr.get())) {
       resolveVariable(idExpr->name);
     } else {
       throw std::runtime_error("Function parameter must be an identifier");
     }
   }
+
+  // Store function metadata
+  functionTable[stmt->name] = {functionStart, static_cast<int>(stmt->params.size())};
 
   compileStatement(stmt->body.get());
 
@@ -274,25 +343,53 @@ void Compiler::compileFunction(FunctionStatement* stmt) {
 };
 
 void Compiler::compileExpressionStmt(ExpressionStatement* stmt) {
-  compileExpession(stmt->expression.get());
+  if (!stmt) {
+    throw NullPointerError("Null expression statement passed to compileExpressionStmt");
+  }
+  if (!stmt->expression) {
+    throw NullPointerError("Null expression in expression statement");
+  }
+
+  compileExpression(stmt->expression.get());
   emit(ByteCode::POP);
 };
 
 
 // Expression functions
 void Compiler::compileBinaryOp(BinaryOpExpr* expr) {
-    compileExpession(expr->left.get());
-    compileExpession(expr->right.get());
+    if (!expr) {
+      throw NullPointerError("Null binary operation passed to compileBinaryOp");
+    }
+    if (!expr->left) {
+      throw NullPointerError("Null left operand in binary operation");
+    }
+    if (!expr->right) {
+      throw NullPointerError("Null right operand in binary operation");
+    }
+
+    compileExpression(expr->left.get());
+    compileExpression(expr->right.get());
     emit(binaryOpToByteCode(expr->op));
 };
 
 void Compiler::compileLiteral(LiteralExpr* expr) {
+  if (!expr) {
+    throw NullPointerError("Null literal expression passed to compileLiteral");
+  }
+
   int idx = addConstant(expr->value);
   emit(ByteCode::PUSH_CONST, idx);
 };
 
 void Compiler::compileUnaryOp(UnaryOpExpr* expr) {
-  compileExpession(expr->operand.get());
+  if (!expr) {
+    throw NullPointerError("Null unary operation passed to compileUnaryOp");
+  }
+  if (!expr->operand) {
+    throw NullPointerError("Null operand in unary operation");
+  }
+
+  compileExpression(expr->operand.get());
   if (expr->op == UnaryOp::NOT) {
     emit(ByteCode::NOT);
   } else if (expr->op == UnaryOp::NEGATE) {
@@ -303,13 +400,39 @@ void Compiler::compileUnaryOp(UnaryOpExpr* expr) {
 };
 
 void Compiler::compileIdentifier(IdentifierExpr* expr) {
+  if (!expr) {
+    throw NullPointerError("Null identifier expression passed to compileIdentifier");
+  }
+
   int slot = resolveVariable(expr->name);
   emit(ByteCode::LOAD, slot);
 };
 
 void Compiler::compileCall(FunctionCallExpr* expr) {
-  for (auto& arg : expr->args) {
-    compileExpession(arg.get());
+  if (!expr) {
+    throw NullPointerError("Null function call passed to compileCall");
   }
-  emit(ByteCode::CALL, static_cast<int>(functionTable[expr->name]));
+
+  // Check if function is defined
+  if (functionTable.find(expr->name) == functionTable.end()) {
+    throw UndefinedFunctionError("Function '" + expr->name + "' is not defined");
+  }
+
+  const FunctionMeta& funcMeta = functionTable[expr->name];
+
+  // Check argument count matches parameter count
+  if (static_cast<int>(expr->args.size()) != funcMeta.paramCount) {
+    throw ArgumentCountError(
+        "Function '" + expr->name + "' expects " + std::to_string(funcMeta.paramCount) +
+        " arguments, got " + std::to_string(expr->args.size())
+    );
+  }
+
+  for (auto& arg : expr->args) {
+    if (!arg) {
+      throw NullPointerError("Null argument in call to '" + expr->name + "'");
+    }
+    compileExpression(arg.get());
+  }
+  emit(ByteCode::CALL, static_cast<int>(funcMeta.address));
 };

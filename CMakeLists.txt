@@ -11,6 +11,7 @@ add_executable(MVScriptCompiler
   src/Parser.cpp
   src/Compiler.cpp
   src/AST.cpp
+        include/ExceptionTypes.h
 )
 
 

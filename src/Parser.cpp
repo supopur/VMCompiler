@@ -17,7 +17,7 @@ Parser::Parser(const std::vector<Token> &tokens)
 }
 
 std::unique_ptr<ASTNode> Parser::parse() {
-    auto programBody = std::make_unique<BlockStatement>();
+    auto programBody = std::make_unique<BlockStatement>(0);
 
     while (current().type != TokenType::EOF_TOKEN) {
         programBody->statements.push_back(parseStatement());
@@ -45,7 +45,7 @@ std::unique_ptr<Statement> Parser::parseStatement() {
     } else if (check(TokenType::IDENTIFIER) || check(TokenType::LPAREN)) {
         // Expression statement (function calls, etc)
         auto expr = parseExpression();
-        auto exprStmt = std::make_unique<ExpressionStatement>();
+        auto exprStmt = std::make_unique<ExpressionStatement>(current().line);
         exprStmt->expression = std::move(expr);
         return exprStmt;
     } else if (check(TokenType::EOF_TOKEN)) {
@@ -93,7 +93,7 @@ std::unique_ptr<Expression> Parser::parseExpression(int minPrecedence) {
 
         auto right = parseExpression(opPrecedence + 1);
 
-        auto binOp = std::make_unique<BinaryOpExpr>();
+        auto binOp = std::make_unique<BinaryOpExpr>(current().line);
         binOp->op = tokenTypeToBinaryOp(op);
         binOp->left = std::move(left);
         binOp->right = std::move(right);
@@ -111,7 +111,7 @@ std::unique_ptr<Expression> Parser::parsePrimary() {
         case TokenType::KW_TRUE:
         case TokenType::KW_FALSE:
         case TokenType::NUMBER: {
-            auto literal = std::make_unique<LiteralExpr>();
+            auto literal = std::make_unique<LiteralExpr>(current().line);
             literal->value = tokenToValue(current());
             advance();
             return literal;
@@ -135,7 +135,7 @@ std::unique_ptr<Expression> Parser::parsePrimary() {
 
                 expect(TokenType::RPAREN);
 
-                std::unique_ptr<FunctionCallExpr> functionCall = std::make_unique<FunctionCallExpr>();
+                std::unique_ptr<FunctionCallExpr> functionCall = std::make_unique<FunctionCallExpr>(current().line);
 
                 functionCall->name = name;
                 functionCall->args = std::move(args);
@@ -144,7 +144,7 @@ std::unique_ptr<Expression> Parser::parsePrimary() {
             }
 
             // just an identifier/var
-            std::unique_ptr<IdentifierExpr> identifier = std::make_unique<IdentifierExpr>();
+            std::unique_ptr<IdentifierExpr> identifier = std::make_unique<IdentifierExpr>(current().line);
 
             identifier->name = name;
 
@@ -170,7 +170,7 @@ std::unique_ptr<Expression> Parser::parseUnary() {
 
         auto operand = parseUnary();
 
-        auto unary = std::make_unique<UnaryOpExpr>();
+        auto unary = std::make_unique<UnaryOpExpr>(current().line);
         unary->op = UnaryOp::NEGATE;
         unary->operand = std::move(operand);
         return unary;
@@ -179,7 +179,7 @@ std::unique_ptr<Expression> Parser::parseUnary() {
 
         auto operand = parseUnary();
 
-        auto unary = std::make_unique<UnaryOpExpr>();
+        auto unary = std::make_unique<UnaryOpExpr>(current().line);
         unary->op = UnaryOp::NOT;
         unary->operand = std::move(operand);
         return unary;
@@ -190,7 +190,7 @@ std::unique_ptr<Expression> Parser::parseUnary() {
 }
 
 std::unique_ptr<BlockStatement> Parser::parseBlock() {
-    auto block = std::make_unique<BlockStatement>();
+    auto block = std::make_unique<BlockStatement>(current().line);
     
     while (currentToken < tokens.size() &&
         current().type != TokenType::KW_END &&
@@ -221,7 +221,7 @@ std::unique_ptr<IfStatement> Parser::parseIfInternal(bool expectEnd) {
             auto elseIfStmt = parseIfInternal(false);
 
             // Wrap the else-if statement in a block
-            elseBlock = std::make_unique<BlockStatement>();
+            elseBlock = std::make_unique<BlockStatement>(current().line);
             elseBlock->statements.push_back(std::move(elseIfStmt));
         } else {
             // Regular else block
@@ -234,7 +234,7 @@ std::unique_ptr<IfStatement> Parser::parseIfInternal(bool expectEnd) {
         expect(TokenType::KW_END);
     }
 
-    auto ifStatement = std::make_unique<IfStatement>();
+    auto ifStatement = std::make_unique<IfStatement>(current().line);
     ifStatement->condition = std::move(condition);
     ifStatement->thenBlock = std::move(thenBlock);
     ifStatement->elseBlock = std::move(elseBlock);
@@ -256,7 +256,7 @@ std::unique_ptr<WhileStatement> Parser::parseWhile() {
 
     expect(TokenType::KW_END);
 
-    auto whileStatement = std::make_unique<WhileStatement>();
+    auto whileStatement = std::make_unique<WhileStatement>(current().line);
 
     whileStatement->condition = std::move(condition);
     whileStatement->body = std::move(doBlock);
@@ -294,7 +294,7 @@ std::unique_ptr<ForStatement> Parser::parseFor() {
 
     expect(TokenType::KW_END);
 
-    auto forStatement = std::make_unique<ForStatement>();
+    auto forStatement = std::make_unique<ForStatement>(current().line);
     forStatement->var = varName;
     forStatement->start = std::move(start);
     forStatement->end = std::move(end);
@@ -318,7 +318,7 @@ std::unique_ptr<FunctionStatement> Parser::parseFunction() {
         }
 
         // Create IdentifierExpr for each parameter
-        auto paramId = std::make_unique<IdentifierExpr>();
+        auto paramId = std::make_unique<IdentifierExpr>(current().line);
         paramId->name = current().value;
         params.push_back(std::move(paramId));
 
@@ -335,7 +335,7 @@ std::unique_ptr<FunctionStatement> Parser::parseFunction() {
 
     expect(TokenType::KW_END);
 
-    auto function = std::make_unique<FunctionStatement>();
+    auto function = std::make_unique<FunctionStatement>(current().line);
     function->name = funcName;
     function->params = std::move(params);
     function->body = std::move(body);
@@ -355,7 +355,7 @@ std::unique_ptr<Statement> Parser::parseAssignment() {
 
     auto value = parseExpression();  // Parse the right-hand side
 
-    auto assignment = std::make_unique<AssignmentStatement>();
+    auto assignment = std::make_unique<AssignmentStatement>(current().line);
     assignment->name = varName;
     assignment->value = std::move(value);
 
@@ -365,7 +365,7 @@ std::unique_ptr<Statement> Parser::parseAssignment() {
 std::unique_ptr<ReturnStatement> Parser::parseReturn() {
     expect(TokenType::KW_RETURN);
     auto value = parseExpression();
-    auto retStmt = std::make_unique<ReturnStatement>();
+    auto retStmt = std::make_unique<ReturnStatement>(current().line);
     retStmt->value = std::move(value);
     return retStmt;
 }

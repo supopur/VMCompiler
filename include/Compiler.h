@@ -6,13 +6,14 @@
 #define MVSCRIPTCOMPILER_COMPILER_H
 
 #include "AST.h"
+#include "ExceptionTypes.h"
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include <variant>
 
 enum class ByteCode {
-  // Math 
+  // Math
   ADD, SUB, MUL, DIV, MOD,
   // Comparison
   LT, LE, GT, GE, EQ, NEQ,
@@ -45,6 +46,12 @@ struct Instruction {
 
 using Value = std::variant<double, std::string, bool>;
 
+// Metadata about compiled functions
+struct FunctionMeta {
+  size_t address;
+  int paramCount;
+};
+
 class Compiler {
 public:
   // Constructor
@@ -67,7 +74,7 @@ private:
   std::unordered_map<std::string, int> variableTable;
   int nextSlot = 0;
 
-  std::unordered_map<std::string, size_t> functionTable;
+  std::unordered_map<std::string, FunctionMeta> functionTable;
 
   // Input nodes
   ASTNode* AllNodes;
@@ -90,7 +97,7 @@ private:
 
   // Main compile routers functions
   void compileStatement(Statement* stmt);
-  void compileExpession(Expression* expr);
+  void compileExpression(Expression* expr);
 
   // Compile functions - statements
   void compileBlock(BlockStatement* block);
