@@ -19,11 +19,10 @@ Parser::Parser(const std::vector<Token> &tokens)
 std::unique_ptr<ASTNode> Parser::parse() {
     auto programBody = std::make_unique<BlockStatement>();
 
-    while (currentToken < tokens.size()) {
-        std::cout << "running" << std::endl;
+    while (current().type != TokenType::EOF_TOKEN) {
         programBody->statements.push_back(parseStatement());
     }
-    std::cout << programBody->statements.size() << std::endl;
+
     return programBody;
 }
 
@@ -196,16 +195,16 @@ std::unique_ptr<BlockStatement> Parser::parseBlock() {
     while (currentToken < tokens.size() &&
         current().type != TokenType::KW_END &&
         current().type != TokenType::KW_ELSE &&
-        current().type != TokenType::EOF_TOKEN) {  // ← ADD THIS
-        auto stmt = parseStatement();
-        if (stmt) {  // ← ADD THIS
-            block->statements.push_back(std::move(stmt));
-        }
-        }
+        current().type != TokenType::EOF_TOKEN) {
+      auto stmt = parseStatement();
+      if (stmt) {
+        block->statements.push_back(std::move(stmt));
+      }
+    }
     return block;
 }
 
-std::unique_ptr<IfStatement> Parser::parseIf() {
+std::unique_ptr<IfStatement> Parser::parseIfInternal(bool expectEnd) {
     expect(TokenType::KW_IF);
     auto condition = parseExpression();
 
@@ -215,10 +214,25 @@ std::unique_ptr<IfStatement> Parser::parseIf() {
     std::unique_ptr<BlockStatement> elseBlock;
     if (check(TokenType::KW_ELSE)) {
         advance();
-        elseBlock = parseBlock();
+
+        // Check if this is "else if"
+        if (check(TokenType::KW_IF)) {
+            // Parse the else-if as a nested if (without expecting its own end)
+            auto elseIfStmt = parseIfInternal(false);
+
+            // Wrap the else-if statement in a block
+            elseBlock = std::make_unique<BlockStatement>();
+            elseBlock->statements.push_back(std::move(elseIfStmt));
+        } else {
+            // Regular else block
+            elseBlock = parseBlock();
+        }
     }
 
-    expect(TokenType::KW_END);
+    // Only expect 'end' if this is a top-level if (not nested in else-if)
+    if (expectEnd) {
+        expect(TokenType::KW_END);
+    }
 
     auto ifStatement = std::make_unique<IfStatement>();
     ifStatement->condition = std::move(condition);
@@ -226,6 +240,10 @@ std::unique_ptr<IfStatement> Parser::parseIf() {
     ifStatement->elseBlock = std::move(elseBlock);
 
     return ifStatement;
+}
+
+std::unique_ptr<IfStatement> Parser::parseIf() {
+    return parseIfInternal(true);
 }
 
 std::unique_ptr<WhileStatement> Parser::parseWhile() {
