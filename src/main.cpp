@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 
         std::cout << "Total tokens: " << tokens.size() << std::endl;
 
-        Parser parser = Parser(tokens);
+        auto parser = Parser(tokens);
         auto ASTNodes = parser.parse();
 
         Compiler compiler(ASTNodes.get());      

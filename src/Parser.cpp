@@ -18,9 +18,12 @@ Parser::Parser(const std::vector<Token> &tokens)
 
 std::unique_ptr<ASTNode> Parser::parse() {
     auto programBody = std::make_unique<BlockStatement>();
-    while (current().type != TokenType::EOF_TOKEN) {
+
+    while (currentToken < tokens.size()) {
+        std::cout << "running" << std::endl;
         programBody->statements.push_back(parseStatement());
     }
+    std::cout << programBody->statements.size() << std::endl;
     return programBody;
 }
 
@@ -109,14 +112,8 @@ std::unique_ptr<Expression> Parser::parsePrimary() {
         case TokenType::KW_TRUE:
         case TokenType::KW_FALSE:
         case TokenType::NUMBER: {
-            std::unique_ptr<LiteralExpr> literal = std::make_unique<LiteralExpr>();
-            if (check(TokenType::NUMBER)) {
-              literal->value = std::stod(current().value);
-            } else if (check(TokenType::STRING)) {
-              literal->value = current().value;
-            } else if (check(TokenType::KW_TRUE) || check(TokenType::KW_FALSE)) {
-              literal->value = (current().type == TokenType::KW_TRUE);
-            }
+            auto literal = std::make_unique<LiteralExpr>();
+            literal->value = tokenToValue(current());
             advance();
             return literal;
         }
@@ -198,9 +195,13 @@ std::unique_ptr<BlockStatement> Parser::parseBlock() {
     
     while (currentToken < tokens.size() &&
         current().type != TokenType::KW_END &&
-        current().type != TokenType::KW_ELSE) {
-      block->statements.push_back(parseStatement());
-    }
+        current().type != TokenType::KW_ELSE &&
+        current().type != TokenType::EOF_TOKEN) {  // ← ADD THIS
+        auto stmt = parseStatement();
+        if (stmt) {  // ← ADD THIS
+            block->statements.push_back(std::move(stmt));
+        }
+        }
     return block;
 }
 
@@ -401,6 +402,17 @@ bool Parser::isOperator(const TokenType type) {
         TokenType::KW_AND, TokenType::KW_OR, TokenType::KW_NOT
     };
     return operators.count(type) > 0;
+}
+
+Value Parser::tokenToValue(const Token &token) {
+    switch (token.type) {
+        case TokenType::NUMBER:   return std::stod(token.value);
+        case TokenType::STRING:   return token.value;
+        case TokenType::KW_TRUE:  return true;
+        case TokenType::KW_FALSE: return false;
+        default: throw std::runtime_error("Invalid literal token");
+    }
+
 }
 
 void Parser::expect(TokenType type) {

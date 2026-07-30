@@ -45,6 +45,7 @@ private:
     Token peek(int offset = 1);
     static int getPrecedence(TokenType op);
     static bool isOperator(TokenType type);
+    static Value tokenToValue(const Token& token);
 };
 
 
