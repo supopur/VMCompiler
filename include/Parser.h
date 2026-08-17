@@ -34,6 +34,7 @@ private:
     std::unique_ptr<WhileStatement> parseWhile();
     std::unique_ptr<ForStatement> parseFor();
     std::unique_ptr<FunctionStatement> parseFunction();
+    std::unique_ptr<OnStatement> parseOn();
     std::unique_ptr<Statement> parseAssignment();
     std::unique_ptr<ReturnStatement> parseReturn();
 

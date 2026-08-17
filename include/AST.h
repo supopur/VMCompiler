@@ -147,6 +147,17 @@ public:
     std::unique_ptr<BlockStatement> body;
 };
 
+///@brief On statements/interrupts (on button1.press do body end)
+class OnStatement : public Statement {
+    using Statement::Statement;
+public:
+    ///@brief The peripheral source, for example BUTTON1, CAN_RX, DMA...
+    std::string source;
+    ///@brief The action/event to listen for, for example NEW_MESSAGE, PRESS, RELEASE...
+    std::string event;
+    std::unique_ptr<BlockStatement> body;
+};
+
 // Expression as statement (for function calls, etc)
 class ExpressionStatement : public Statement {
     using Statement::Statement;

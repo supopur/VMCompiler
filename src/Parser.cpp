@@ -37,6 +37,8 @@ std::unique_ptr<Statement> Parser::parseStatement() {
         return parseFor();
     } else if (check(TokenType::KW_FUNCTION)) {
         return parseFunction();
+    } else if (check(TokenType::KW_ON)) {
+        return parseOn();
     } else if (check(TokenType::IDENTIFIER) && peek().type == TokenType::ASSIGN) {
         // variable assignment
         return parseAssignment();
@@ -341,6 +343,32 @@ std::unique_ptr<FunctionStatement> Parser::parseFunction() {
     function->body = std::move(body);
 
     return function;
+}
+
+std::unique_ptr<OnStatement> Parser::parseOn() {
+    expect(TokenType::KW_ON);
+
+    std::string source = current().value;
+    advance();
+
+    expect(TokenType::DOT);
+
+    std::string event = current().value;
+    advance();
+
+    expect(TokenType::KW_DO);
+
+    auto body = parseBlock();
+
+    expect(TokenType::KW_END);
+
+    std::unique_ptr<OnStatement> on = std::make_unique<OnStatement>(current().line);
+
+    on->body = std::move(body);
+    on->event = std::move(event);
+    on->source = std::move(source);
+
+    return on;
 }
 
 std::unique_ptr<Statement> Parser::parseAssignment() {

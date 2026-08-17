@@ -104,6 +104,9 @@ std::vector<Token> Lexer::Tokenize() {
                 emit(Token(TokenType::DOT_DOT, "..", line, col));
                 advance();
                 advance();
+            } else if (c == '.') {
+                emit(Token(TokenType::DOT, ".", line, col));
+                advance();
             } else {
                 throw std::runtime_error(std::string("Unknown character: ") + c);
             }
@@ -182,7 +185,8 @@ TokenType Lexer::keywordOrIdentifier(const std::string &text) {
         {"false", TokenType::KW_FALSE},
         {"end", TokenType::KW_END},
         {"func", TokenType::KW_FUNCTION},
-        {"return", TokenType::KW_RETURN}
+        {"return", TokenType::KW_RETURN},
+        {"on", TokenType::KW_ON}
     };
 
     auto it = keywords.find(text);

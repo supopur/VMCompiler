@@ -20,13 +20,14 @@ enum class TokenType {
     KW_FUNCTION,
     KW_AND, KW_OR, KW_NOT,
     KW_TRUE, KW_FALSE,
+    KW_ON,
 
     // Operators
     ASSIGN, PLUS, MINUS, STAR, SLASH, PERCENT,
     EQ, NEQ, LT, GT, LE, GE,
 
     // Delimiters
-    LPAREN, RPAREN, COMMA, SEMICOLON, DOT_DOT,
+    LPAREN, RPAREN, COMMA, SEMICOLON, DOT_DOT, DOT,
 
     // Special
     EOF_TOKEN, ERROR, KW_RETURN
